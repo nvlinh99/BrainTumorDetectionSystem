@@ -1,0 +1,13 @@
+image:
+  repository: linhnv/brain-tumor-detection
+  tag: "latest"
+  pullPolicy: Always
+
+service:
+  type: LoadBalancer
+  targetPort: 8000
+  port: 8000
+
+ingress:
+  enabled: true
+  host: brain-tumor-detection.local
