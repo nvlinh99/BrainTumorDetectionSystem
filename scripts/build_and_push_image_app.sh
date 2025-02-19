@@ -4,7 +4,7 @@
 BASE_DIR=$(dirname "$(dirname "$(realpath "$0")")")
 
 # Configuration
-IMAGE_NAME="linhnv/brain-tumor-detection"
+IMAGE_NAME="nvlinh99/brain-tumor-detection"
 IMAGE_TAG="latest"
 
 # Colors for output
@@ -39,7 +39,7 @@ fi
 
 # Check if user is logged into DockerHub
 print_status "Checking DockerHub authentication"
-if ! docker info | grep -q "Username"; then
+if ! docker run --rm nvlinh99/brain-tumor-detection echo "Authenticated" &> /dev/null; then
     echo "Please log in to DockerHub first using 'docker login'"
     exit 1
 fi

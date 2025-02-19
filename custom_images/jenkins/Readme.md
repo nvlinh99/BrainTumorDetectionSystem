@@ -47,7 +47,7 @@ docker compose up --build -d
 1. Update the `IMAGE_NAME` in [`build_and_push_image_jenkins.sh`](https://github.com/DucLong06/face-detection-ml-system/blob/38c517b0861ed4b0ed3960e63dd036e3dcbe617b/scripts/build_and_push_image_jenkins.sh#L8-L9) with your DockerHub username:
 ```bash
 # In build.sh
-IMAGE_NAME="linhnv/jenkins-docker-helm"
+IMAGE_NAME="nvlinh99/jenkins-docker-helm"
 IMAGE_TAG="latest"
 ```
 

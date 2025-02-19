@@ -1,5 +1,5 @@
 image:
-  repository: linhnv/brain-tumor-detection
+  repository: nvlinh99/brain-tumor-detection
   tag: "latest"
   pullPolicy: Always
 

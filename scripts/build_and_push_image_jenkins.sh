@@ -5,7 +5,7 @@ BASE_DIR=$(dirname "$(dirname "$(realpath "$0")")")
 JENKINS_DIR="${BASE_DIR}/custom_images/jenkins"
 
 # Configuration
-IMAGE_NAME="linhnv/jenkins-docker-helm"
+IMAGE_NAME="nvlinh99/jenkins-docker-helm"
 IMAGE_TAG="latest"
 
 # Colors for output
@@ -58,7 +58,7 @@ print_status "Docker image built successfully"
 
 # Check if user is logged into DockerHub
 print_status "Checking DockerHub authentication"
-if ! docker info | grep -q "Username"; then
+if ! docker run --rm nvlinh99/jenkins-docker-helm echo "Authenticated" &> /dev/null; then
     print_error "Please log in to DockerHub first using 'docker login'"
     exit 1
 fi

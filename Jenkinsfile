@@ -7,7 +7,7 @@ pipeline {
     }
     ub'
     environment {
-        registry = 'linhnv/brain-tumor-detection'
+        registry = 'nvlinh99/brain-tumor-detection'
         registryCredential = 'dockerh
     }
     
@@ -50,7 +50,7 @@ pipeline {
                 kubernetes {
                     containerTemplate {
                         name 'helm'
-                        image 'longhd06/jenkins-docker-helm:latest'
+                        image 'nvlinh99/jenkins-docker-helm:latest'
                         alwaysPullImage true
                     }
                 }

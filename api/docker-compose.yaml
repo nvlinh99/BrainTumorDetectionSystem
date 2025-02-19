@@ -1,7 +1,7 @@
 version: "3.8"
 
 services:
-    face_detection:
+    brain_tumor_detection:
         build:
             context: .
             dockerfile: Dockerfile
