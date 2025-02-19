@@ -5,10 +5,9 @@ pipeline {
         buildDiscarder(logRotator(numToKeepStr: '5', daysToKeepStr: '5'))
         timestamps()
     }
-    ub'
     environment {
         registry = 'nvlinh99/brain-tumor-detection'
-        registryCredential = 'dockerh
+        registryCredential = 'dockerhub-credentials'
     }
     
     stages {
