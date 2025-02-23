@@ -63,7 +63,7 @@ docker-compose ps
 ```
 ├── docker-compose.yaml
 ├── dockerfile
-├── Face-Detection/
+├── Brain-Tumor-Detection/
 ├── models/
 │   └── yolov11n-face.pt
 ├── notebook/

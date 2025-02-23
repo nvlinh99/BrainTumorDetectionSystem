@@ -5,7 +5,7 @@ SSH_KEY_PATH := $(SSH_KEY_DIR)/jenkins_key
 TERRAFORM_DIR := terraform
 ANSIBLE_DIR := ansible
 INVENTORY_FILE := $(ANSIBLE_DIR)/inventory/inventory.ini
-JENKINS_IMAGE := linhnv/jenkins-docker-helm
+JENKINS_IMAGE := nvlinh99/jenkins-docker-helm
 JENKINS_TAG := latest
 REQUIRED_DIRS := $(SSH_KEY_DIR) $(TERRAFORM_DIR) $(ANSIBLE_DIR)
 

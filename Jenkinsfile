@@ -5,10 +5,10 @@ pipeline {
         buildDiscarder(logRotator(numToKeepStr: '5', daysToKeepStr: '5'))
         timestamps()
     }
-
+    
     environment {
         registry = 'nvlinh99/brain-tumor-detection'
-        registryCredential = 'dockerhub-credentials'
+        registryCredential = 'dockerhub'
     }
     
     stages {
@@ -35,7 +35,7 @@ pipeline {
                     
                     dockerImage = docker.build registry + ":$BUILD_NUMBER", "./"
                     
-                    echo 'Pushing image to DockerHub...'
+                    echo 'Pushing image to dockerhub...'
                     docker.withRegistry('', registryCredential) {
                         dockerImage.push()
                         dockerImage.push('latest')
@@ -45,18 +45,27 @@ pipeline {
         }
 
         stage('Deploy') {
-            agent { label 'kubernetes' } // ✅ FIX: Use label-based Kubernetes agent
-
+            agent {
+                kubernetes {
+                    containerTemplate {
+                        name 'helm'
+                        image 'nvlinh99/jenkins-docker-helm:latest'
+                        alwaysPullImage true
+                    }
+                }
+            }
             steps {
                 dir('charts/brain-tumor-detection') {
                     script {
-                        sh """
-                            kubectl delete pods -n model-serving -l app=brain-tumor-detection || true
-                            helm upgrade --install brain-tumor-detection . \
-                                --namespace model-serving \
-                                --set image.pullPolicy=Always \
-                                --set image.tag=${BUILD_NUMBER}
-                        """
+                        container('helm') {
+                            sh """
+                                kubectl delete pods -n model-serving -l app=brain-tumor-detection || true
+                                helm upgrade --install brain-tumor-detection . \
+                                    --namespace model-serving \
+                                    --set image.pullPolicy=Always \
+                                    --set image.tag=${BUILD_NUMBER}
+                            """
+                        }
                     }
                 }
             }
