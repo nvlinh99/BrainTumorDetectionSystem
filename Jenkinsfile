@@ -47,13 +47,18 @@ pipeline {
         stage('Deploy') {
             agent {
                 kubernetes {
-                    containerTemplate {
-                        name 'helm'
-                        image 'nvlinh99/jenkins-docker-helm:latest'
-                        alwaysPullImage true
-                    }
+                    yaml """
+                    apiVersion: v1
+                    kind: Pod
+                    spec:
+                    containers:
+                    - name: helm
+                        image: nvlinh99/jenkins-docker-helm:latest
+                        imagePullPolicy: Always
+                    """
                 }
             }
+
             steps {
                 dir('charts/brain-tumor-detection') {
                     script {
