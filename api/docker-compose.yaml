@@ -1,7 +1,5 @@
-version: "3.8"
-
 services:
-    brain_tumor_detection:
+    brain-tumor-detection:
         build:
             context: .
             dockerfile: Dockerfile
