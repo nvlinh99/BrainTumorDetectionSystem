@@ -8,7 +8,7 @@ from loguru import logger
 
 # Initialize the YOLOv11 face detection model
 logger.info("Loading YOLOv11 face detection model")
-face_detection_model = YOLO("/app/api/models/yolov11n-face.pt")
+face_detection_model = YOLO("/app/models/yolov11n-face.pt")
 logger.info("Face detection model loaded successfully")
 
 

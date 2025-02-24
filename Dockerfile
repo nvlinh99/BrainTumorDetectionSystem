@@ -36,9 +36,9 @@ RUN apt update && \
     apt clean && \
     rm -rf /var/lib/apt/lists/*
 
-# Copy application files
+# Copy application code and models
 COPY api/ /app/api/
-COPY models/ /app/api/models/
+COPY models/ /app/models/
 
 # Copy requirements file and install dependencies
 COPY api/requirements.txt /app/requirements.txt
@@ -47,5 +47,5 @@ RUN pip install --no-cache-dir -r /app/requirements.txt
 # Expose FastAPI's default port
 EXPOSE 8000
 
-# Run FastAPI application correctly
+# Run FastAPI application
 CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
