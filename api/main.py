@@ -2,7 +2,7 @@ from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, File
 import uvicorn
-from my_yolo import (
+from api.my_yolo import (
     convert_bytes_to_image,
     convert_image_to_bytes,
     detect_faces_in_image,
@@ -102,6 +102,6 @@ async def detect_faces_image(file: bytes = File(...)):
         }
     )
 
-if __name__ == "__main__":
-    logger.info("Running FastAPI with Uvicorn...")
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+# if __name__ == "__main__":
+#     logger.info("Running FastAPI with Uvicorn...")
+#     uvicorn.run(app, host="0.0.0.0", port=8000)
