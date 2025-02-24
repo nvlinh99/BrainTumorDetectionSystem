@@ -29,22 +29,23 @@ WORKDIR /app
 # Set environment variables to reduce space usage
 ENV PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
-    PIP_DISABLE_PIP_VERSION_CHECK=1
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PYTHONPATH=/app
 
 # Install system dependencies
 RUN apt update && \
     apt install -y --no-install-recommends htop libgl1-mesa-glx libglib2.0-0 && \
     rm -rf /var/lib/apt/lists/*
 
-# Copy only the requirements file first for caching
-COPY api/requirements.txt /app/requirements.txt
+# Copy requirements file first for caching
+COPY ./api/requirements.txt /app/requirements.txt
 
 # Install Python dependencies
 RUN pip install --no-cache-dir -r /app/requirements.txt
 
 # Copy the rest of the application code
-COPY api/ /app/
-COPY models/ /app/models/
+COPY ./api /app/api
+COPY ./models /app/models
 
 # Expose FastAPI's default port
 EXPOSE 8000
