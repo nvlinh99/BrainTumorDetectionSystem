@@ -101,3 +101,7 @@ async def detect_faces_image(file: bytes = File(...)):
             "X-Processing-Time": f"{execution_time:.2f}"
         }
     )
+
+if __name__ == "__main__":
+    logger.info("Running FastAPI with Uvicorn...")
+    uvicorn.run(app, host="0.0.0.0", port=8000)
