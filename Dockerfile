@@ -38,7 +38,7 @@ RUN apt update && \
 
 # Copy application files
 COPY api/ /app/api
-COPY api/models/ /app/models/
+COPY models/ /app/models/
 
 # Copy requirements file and install dependencies
 COPY api/requirements.txt /app/requirements.txt
