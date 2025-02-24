@@ -1,3 +1,17 @@
+# services:
+#     brain-tumor-detection:
+#         build:
+#             context: .
+#             dockerfile: Dockerfile
+#         restart: "always"
+#         volumes:
+#             - .:/app
+#             - ../models:/app/models
+#         ports:
+#             - "8000:8000"
+#         command: uvicorn main:app --reload --host 0.0.0.0 --port 8000
+
+
 services:
     brain-tumor-detection:
         build:
@@ -6,7 +20,7 @@ services:
         restart: "always"
         volumes:
             - .:/app
-            - ../models:/app/models
+            - ./models:/app/models  # Fixed path for models
         ports:
             - "8000:8000"
-        command: uvicorn main:app --reload --host 0.0.0.0 --port 8000
+        command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
