@@ -111,10 +111,9 @@ pipeline {
             steps {
                 script {
                     echo 'Running tests...'
-                    // Build a temporary test image
                     sh '''
                         docker build -t test-image -f Dockerfile .
-                        docker run --rm test-image bash -c "cd /app/api && pytest -v"
+                        docker run --rm test-image bash -c "ls -l /app/api && cd /app/api && pytest -v"
                         docker rmi test-image
                     '''
                 }
@@ -143,20 +142,20 @@ pipeline {
             agent {
                 kubernetes {
                     yaml """
-apiVersion: v1
-kind: Pod
-metadata:
-  labels:
-    app: jenkins-agent
-spec:
-  containers:
-    - name: helm
-      image: nvlinh99/jenkins-docker-helm:latest
-      imagePullPolicy: Always
-      command:
-        - cat
-      tty: true
-"""
+                    apiVersion: v1
+                    kind: Pod
+                    metadata:
+                    labels:
+                        app: jenkins-agent
+                    spec:
+                    containers:
+                        - name: helm
+                        image: nvlinh99/jenkins-docker-helm:latest
+                        imagePullPolicy: Always
+                        command:
+                            - cat
+                        tty: true
+                    """
                 }
             }
             

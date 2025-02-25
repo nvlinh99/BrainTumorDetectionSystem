@@ -75,7 +75,7 @@ setting_jaeger(app)
 
 @app.get('/health')
 async def check_health():
-    return {'status': 'healthy'}
+    return {'status': 'Welcome to Brain Tumor Detection API'}
 
 
 @app.post("/detect/faces/image")

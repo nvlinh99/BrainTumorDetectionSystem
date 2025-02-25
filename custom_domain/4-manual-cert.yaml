@@ -1,0 +1,12 @@
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: brain-tumor-detection-tls
+  namespace: model-serving
+spec:
+  secretName: brain-tumor-detection-tls
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+  dnsNames:
+  - demo.vuxlinh.com

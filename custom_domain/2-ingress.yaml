@@ -1,0 +1,35 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: brain-tumor-detection-ingress
+  namespace: model-serving
+  annotations:
+    cert-manager.io/cluster-issuer: 'letsencrypt-prod'
+    nginx.ingress.kubernetes.io/ssl-redirect: 'true' # Force HTTPS
+    nginx.ingress.kubernetes.io/server-snippet: |
+      location /.well-known/acme-challenge/ {
+        allow all;
+        default_type "text/plain";
+        add_header Content-Type "text/plain";
+        root /var/www/html;
+        try_files $uri =404;
+      }
+
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: demo.vuxlinh.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: brain-tumor-detection
+            port:
+              number: 8000
+
+  tls:
+  - hosts:
+    - demo.vuxlinh.com
+    secretName: brain-tumor-detection-tls
