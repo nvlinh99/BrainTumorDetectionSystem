@@ -16,7 +16,6 @@
 //             steps {
 //                 script {
 //                     echo 'Running tests...'
-//                     // Build a temporary test image
 //                     sh '''
 //                         docker build -t test-image -f Dockerfile .
 //                         docker run --rm test-image bash -c "cd /app/api && pytest -v"
@@ -48,21 +47,27 @@
 //             agent {
 //                 kubernetes {
 //                     yaml """
-//                     apiVersion: v1
-//                     kind: Pod
-//                     spec:
-//                     containers:
-//                     - name: helm
-//                         image: nvlinh99/jenkins-docker-helm:latest
-//                         imagePullPolicy: Always
-//                     """
+// apiVersion: v1
+// kind: Pod
+// metadata:
+//   labels:
+//     app: jenkins-agent
+// spec:
+//   containers:
+//     - name: helm
+//       image: nvlinh99/jenkins-docker-helm:latest
+//       imagePullPolicy: Always
+//       command:
+//         - cat
+//       tty: true
+// """
 //                 }
 //             }
-
+            
 //             steps {
-//                 dir('charts/brain-tumor-detection') {
-//                     script {
-//                         container('helm') {
+//                 container('helm') {
+//                     dir('charts/brain-tumor-detection') {
+//                         script {
 //                             sh """
 //                                 kubectl delete pods -n model-serving -l app=brain-tumor-detection || true
 //                                 helm upgrade --install brain-tumor-detection . \
@@ -92,7 +97,7 @@
 // }
 
 
-// upDATE TEAMP FOR TEST
+// for test:
 pipeline {
     agent any
     
@@ -100,22 +105,26 @@ pipeline {
         buildDiscarder(logRotator(numToKeepStr: '5', daysToKeepStr: '5'))
         timestamps()
     }
-    
+
     environment {
         registry = 'nvlinh99/brain-tumor-detection'
         registryCredential = 'dockerhub'
     }
-    
+
     stages {
         stage('Test') {
-            steps {
-                script {
-                    echo 'Running tests...'
-                    sh '''
-                        docker build -t test-image -f Dockerfile .
-                        docker run --rm test-image bash -c "cd /app/api && pytest -v"
-                        docker rmi test-image
-                    '''
+            parallel {
+                stage('Unit Tests') {
+                    steps {
+                        script {
+                            echo 'Running tests...'
+                            sh '''
+                                docker build -t test-image -f Dockerfile .
+                                docker run --rm test-image bash -c "cd /app/api && pytest -v"
+                                docker rmi test-image
+                            '''
+                        }
+                    }
                 }
             }
         }
@@ -124,15 +133,15 @@ pipeline {
             steps {
                 script {
                     echo 'Building image for deployment...'
-                    sh "docker rmi -f ${registry}:$BUILD_NUMBER || true"
-                    sh "docker rmi -f ${registry}:latest || true"
+                    sh "DOCKER_BUILDKIT=1 docker build -t ${registry}:${BUILD_NUMBER} ."
                     
-                    dockerImage = docker.build registry + ":$BUILD_NUMBER", "./"
-                    
-                    echo 'Pushing image to dockerhub...'
+                    echo 'Pushing image to Docker Hub...'
                     docker.withRegistry('', registryCredential) {
-                        dockerImage.push()
-                        dockerImage.push('latest')
+                        sh """
+                            docker push ${registry}:${BUILD_NUMBER} --quiet
+                            docker tag ${registry}:${BUILD_NUMBER} ${registry}:latest
+                            docker push ${registry}:latest --quiet
+                        """
                     }
                 }
             }
@@ -164,11 +173,12 @@ spec:
                     dir('charts/brain-tumor-detection') {
                         script {
                             sh """
-                                kubectl delete pods -n model-serving -l app=brain-tumor-detection || true
+                                echo 'Rolling out new version...'
                                 helm upgrade --install brain-tumor-detection . \
                                     --namespace model-serving \
                                     --set image.pullPolicy=Always \
-                                    --set image.tag=${BUILD_NUMBER}
+                                    --set image.tag=${BUILD_NUMBER} \
+                                    --wait --timeout 300s
                             """
                         }
                     }
@@ -179,14 +189,15 @@ spec:
     
     post {
         always {
-            sh "docker rmi -f ${registry}:$BUILD_NUMBER || true"
+            echo 'Cleaning up...'
+            sh "docker rmi -f ${registry}:${BUILD_NUMBER} || true"
             sh "docker rmi -f ${registry}:latest || true"
         }
         failure {
-            echo 'Pipeline failed!'
+            echo '❌ Pipeline failed! Check logs.'
         }
         success {
-            echo 'Pipeline succeeded!'
+            echo '✅ Pipeline succeeded!'
         }
     }
 }
