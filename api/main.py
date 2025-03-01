@@ -1,31 +1,21 @@
-from fastapi.responses import StreamingResponse
+from fastapi import FastAPI, UploadFile, File
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi import FastAPI, File
-import uvicorn
-from api.my_yolo import (
-    convert_bytes_to_image,
-    convert_image_to_bytes,
-    detect_faces_in_image,
-    draw_detection_boxes
-)
-import time
-import os
 from opentelemetry import trace
-from opentelemetry.exporter.jaeger.thrift import JaegerExporter
 from opentelemetry.sdk.resources import SERVICE_NAME, Resource
 from opentelemetry.sdk.trace import TracerProvider
 from opentelemetry.sdk.trace.export import BatchSpanProcessor
-from opentelemetry.trace import get_tracer_provider, set_tracer_provider
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
-from loguru import logger
-import socket
-from contextlib import closing
-from opentelemetry.sdk.trace.sampling import ALWAYS_ON
-from starlette.types import ASGIApp
-from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import (
-    OTLPSpanExporter as OTLPSpanExporterGRPC,
-)
 from opentelemetry.instrumentation.logging import LoggingInstrumentor
+from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter as OTLPSpanExporterGRPC
+from loguru import logger
+from PIL import Image, ImageOps
+import numpy as np
+import io
+import os
+import time
+
+from model import rebuild_model, class_names 
 
 # Initialize FastAPI app
 app = FastAPI()
@@ -38,16 +28,14 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
 # Get configuration from environment variables
 OTLP_GRPC_ENDPOINT = os.environ.get("OTLP_GRPC_ENDPOINT", "jaeger-jaeger.tracing.svc.cluster.local:4317")
 
-
-def setting_jaeger(app: ASGIApp, log_correlation: bool = True) -> None:
+def setting_jaeger(app: FastAPI, log_correlation: bool = True) -> None:
     try:
-        # set the tracer provider
         tracer = TracerProvider(
-            resource=Resource.create({SERVICE_NAME: "brain-tumor-detection"}),
-            sampler=ALWAYS_ON
+            resource=Resource.create({SERVICE_NAME: "brain-tumor-detection"})
         )
         trace.set_tracer_provider(tracer)
 
@@ -58,7 +46,6 @@ def setting_jaeger(app: ASGIApp, log_correlation: bool = True) -> None:
 
         logger.info(f"Configuring OTLP exporter with endpoint: {OTLP_GRPC_ENDPOINT}")
 
-        # Remove the shutdown() call that was causing the issue
         tracer.add_span_processor(BatchSpanProcessor(otlp_exporter))
 
         if log_correlation:
@@ -67,41 +54,48 @@ def setting_jaeger(app: ASGIApp, log_correlation: bool = True) -> None:
         logger.info("Jaeger instrumentation completed successfully")
     except Exception as e:
         logger.error(f"Failed to set up Jaeger instrumentation: {str(e)}")
-        raise  # Re-raise the exception to make setup failures visible
-
+        raise
 
 setting_jaeger(app)
 
+@app.get('/')
+async def index():
+    return {'message': 'Welcome to Brain Tumor Detection API!'}
 
 @app.get('/health')
 async def check_health():
     return {'status': 'healthy'}
 
+# Load model weights
+weights_path = 'models/model.weights.h5'
+if os.path.exists(weights_path):
+    model = rebuild_model()
+    model.load_weights(weights_path)
+    logger.info("Model weights loaded successfully.")
+else:
+    logger.error("Model weights file not found!")
 
-@app.post("/detect/faces/image")
-async def detect_faces_image(file: bytes = File(...)):
+@app.post("/predict/brain-tumor")
+async def predict_brain_tumor(file: UploadFile = File(...)):
     start_time = time.time()
+    try:
+        image = Image.open(io.BytesIO(await file.read())).convert("RGB")
+        image = ImageOps.fit(image, (240, 240), Image.Resampling.LANCZOS)
+        img_array = np.asarray(image) / 255.0
+        img_array = img_array[np.newaxis, ...]
 
-    input_image = convert_bytes_to_image(file)
-    predictions = detect_faces_in_image(input_image)
-    annotated_image = draw_detection_boxes(
-        image=input_image,
-        detections=predictions
-    )
-    image_bytes = convert_image_to_bytes(annotated_image)
+        prediction = model.predict(img_array)
+        predicted_class = class_names[np.argmax(prediction)]
+        confidence = float(np.max(prediction)) * 100
+        
+        processing_time = time.time() - start_time
+        logger.info(f"Processing Time: {processing_time:.2f} seconds")
 
-    execution_time = time.time() - start_time
-    logger.info(f"Processing time: {execution_time:.2f} seconds")
+        return JSONResponse(content={
+            "predicted_class": predicted_class,
+            "confidence": confidence
+        })
 
-    return StreamingResponse(
-        content=image_bytes,
-        media_type="image/jpeg",
-        headers={
-            "X-Total-Faces": str(len(predictions)),
-            "X-Processing-Time": f"{execution_time:.2f}"
-        }
-    )
-
-# if __name__ == "__main__":
-#     logger.info("Running FastAPI with Uvicorn...")
-#     uvicorn.run(app, host="0.0.0.0", port=8000)
+    except Exception as e:
+        logger.error(f"Prediction error: {e}")
+        return JSONResponse(content={"error": str(e)}, status_code=500)

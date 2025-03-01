@@ -8,7 +8,7 @@ st.set_page_config(
     initial_sidebar_state="auto"
 )
 
-FASTAPI_URL = "http://127.0.0.1:8000"
+FASTAPI_URL = "http://34.69.54.132:8000" # for testing purposes
 
 st.title("Brain Tumor Detection")
 

@@ -1,32 +1,10 @@
-# FROM tiangolo/uvicorn-gunicorn:python3.10
-
-# # Install system dependencies
-# RUN apt update && \
-#     apt install -y htop libgl1-mesa-glx libglib2.0-0 && \
-#     apt clean && \
-#     rm -rf /var/lib/apt/lists/*
-
-# # Install Python dependencies
-# COPY requirements.txt /tmp/requirements.txt
-# RUN pip install --no-cache-dir -r /tmp/requirements.txt 
-
-# WORKDIR /app
-
-# # Copy application code and models
-# COPY api/ /app/api
-# COPY models/ /app/models/
-
-# EXPOSE 8000
-
-# # CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
-# CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
-
+# Use Python 3.10 with Uvicorn + Gunicorn for FastAPI
 FROM tiangolo/uvicorn-gunicorn:python3.10
 
 # Set the working directory
 WORKDIR /app
 
-# Set environment variables to reduce space usage
+# Set environment variables
 ENV PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
@@ -37,18 +15,23 @@ RUN apt update && \
     apt install -y --no-install-recommends htop libgl1-mesa-glx libglib2.0-0 && \
     rm -rf /var/lib/apt/lists/*
 
-# Copy requirements file first for caching
+# Copy requirements file
 COPY ./api/requirements.txt /app/requirements.txt
 
 # Install Python dependencies
 RUN pip install --no-cache-dir -r /app/requirements.txt
 
-# Copy the rest of the application code
+# Copy FastAPI and Streamlit app files
 COPY ./api /app/api
 COPY ./models /app/models
+COPY ./streamlit /app/streamlit
 
-# Expose FastAPI's default port
-EXPOSE 8000
+# Expose ports
+EXPOSE 8000 8501
 
-# Run FastAPI application
-CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Start both FastAPI and Streamlit using a script
+COPY /scripts/start_services.sh /app/start_services.sh
+RUN chmod +x /app/start_services.sh
+
+# Run FastAPI and Streamlit together
+CMD ["/bin/bash", "/app/start_services.sh"]
