@@ -24,7 +24,6 @@ RUN pip install --no-cache-dir -r /app/requirements.txt
 # Copy FastAPI and Streamlit app files
 COPY ./api /app/api
 COPY ./models /app/models
-COPY ./streamlit /app/streamlit
 
 # Expose ports
 EXPOSE 8000 8501
