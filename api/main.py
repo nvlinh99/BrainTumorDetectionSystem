@@ -15,7 +15,7 @@ import io
 import os
 import time
 
-from model import rebuild_model, class_names 
+from api.model import rebuild_model, class_names 
 
 # Initialize FastAPI app
 app = FastAPI()
