@@ -1,7 +1,5 @@
 helmDefaults:
   createNamespace: true
-  cleanupOnFail: true
-  force: true
 
 releases:
   - name: kube-prometheus-stack
@@ -23,19 +21,6 @@ releases:
     chart: ./elk-filebeat/kibana
     needs:
       - logging/elasticsearch
-    hooks:
-      - events: ["pre-upgrade"]
-        command: "kubectl"
-        args: ["delete", "configmap", "kibana-kibana-helm-scripts", "-n", "logging", "--ignore-not-found=true"]
-      - events: ["pre-upgrade"]
-        command: "kubectl"
-        args: ["delete", "serviceaccount", "pre-install-kibana-kibana", "-n", "logging", "--ignore-not-found=true"]
-      - events: ["pre-upgrade"]
-        command: "kubectl"
-        args: ["delete", "role", "pre-install-kibana-kibana", "-n", "logging", "--ignore-not-found=true"]
-      - events: ["pre-upgrade"]
-        command: "kubectl"
-        args: ["delete", "rolebinding", "pre-install-kibana-kibana", "-n", "logging", "--ignore-not-found=true"]
 
   - name: filebeat
     namespace: logging
