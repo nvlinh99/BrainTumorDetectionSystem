@@ -8,8 +8,8 @@ st.set_page_config(
     initial_sidebar_state="auto"
 )
 
-#FASTAPI_URL = "http://34.69.54.132:8000"
-FASTAPI_URL = "http://brain-tumor-detection:8000"
+FASTAPI_URL = "http://34.69.54.132:8000"
+# FASTAPI_URL = "http://brain-tumor-detection:8000"
 
 st.title("Brain Tumor Detection")
 
