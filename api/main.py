@@ -79,7 +79,7 @@ def rebuild_model():
     model = Model(inputs=base_model.input, outputs=output)
     return model
 
-def load_model(weights_path="/app/model/model.weights.h5"):
+def load_model(weights_path="/app/models/model.weights.h5"):
     model = rebuild_model()
     model.load_weights(weights_path, by_name=True, skip_mismatch=True)
     return model
