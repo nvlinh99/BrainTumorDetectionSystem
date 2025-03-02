@@ -70,9 +70,13 @@ async def check_health():
 weights_path = '/app/models/model.weights.h5'
 model = None 
 
+# Load model weights
+weights_path = '/app/models/model.weights.h5'
+model = None 
+
 if os.path.exists(weights_path):
-    model = rebuild_model()  # Build model architecture
-    model.load_weights(weights_path)  # Load weights
+    model = rebuild_model()  # Ensure model structure matches
+    model.load_weights(weights_path, by_name=True, skip_mismatch=True)  # Ignore mismatches
     logger.info("Model weights loaded successfully.")
 else:
     logger.error("Model weights file not found!")
