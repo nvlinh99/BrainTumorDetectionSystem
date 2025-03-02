@@ -67,7 +67,7 @@ async def check_health():
     return {'status': 'healthy'}
 
 # Load model weights
-weights_path = 'models/model.weights.h5'
+weights_path = '/app/api/models/model.weights.h5'
 model = None  # Define model globally
 
 if os.path.exists(weights_path):
