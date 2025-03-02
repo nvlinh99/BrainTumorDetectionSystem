@@ -8,14 +8,15 @@ from opentelemetry.sdk.trace.export import BatchSpanProcessor
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
 from opentelemetry.instrumentation.logging import LoggingInstrumentor
 from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter as OTLPSpanExporterGRPC
+from tensorflow.keras.applications import EfficientNetB1
+from tensorflow.keras.models import Model
+from tensorflow.keras.layers import GlobalAveragePooling2D, Dropout, Dense
 from loguru import logger
 from PIL import Image, ImageOps
 import numpy as np
 import io
 import os
 import time
-
-from api.utils import rebuild_model, class_names 
 
 # Initialize FastAPI app
 app = FastAPI()
@@ -66,50 +67,43 @@ async def index():
 async def check_health():
     return {'status': 'healthy'}
 
-# Load model weights
-weights_path = '/app/models/model.weights.h5'
-model = None 
+CLASS_NAMES = ['Glioma Tumor', 'Meningioma Tumor', 'No Tumor', 'Pituitary Tumor']
 
-# Load model weights
-weights_path = '/app/models/model.weights.h5'
-model = None 
+# Load Model
+def rebuild_model():
+    base_model = EfficientNetB1(weights=None, include_top=False, input_shape=(240, 240, 3))
+    x = base_model.output
+    x = GlobalAveragePooling2D()(x)
+    x = Dropout(0.5)(x)
+    output = Dense(len(CLASS_NAMES), activation='softmax')(x)
+    model = Model(inputs=base_model.input, outputs=output)
+    return model
 
-if os.path.exists(weights_path):
-    model = rebuild_model()  # Ensure model structure matches
-    model.load_weights(weights_path, by_name=True, skip_mismatch=True)  # Ignore mismatches
-    logger.info("Model weights loaded successfully.")
-else:
-    logger.error("Model weights file not found!")
-    raise RuntimeError("Model weights file is missing. Please upload the correct model file.")
+def load_model(weights_path="/app/model/model.weights.h5"):
+    model = rebuild_model()
+    model.load_weights(weights_path, by_name=True, skip_mismatch=True)
+    return model
 
-@app.post("/predict/brain-tumor")
-async def predict_brain_tumor(file: UploadFile = File(...)):
-    global model  # Ensure model is recognized globally
+model = load_model()
 
-    if model is None:
-        logger.error("Model is not loaded!")
-        return JSONResponse(content={"error": "Model is not loaded. Please check the server logs."}, status_code=500)
-
-    start_time = time.time()
+# Prediction function
+def predict(image):
+    size = (240, 240)
+    image = ImageOps.fit(image, size, Image.Resampling.LANCZOS)
+    img = np.asarray(image) / 255.0
+    img_reshape = img[np.newaxis, ...]
     
+    prediction = model.predict(img_reshape)
+    predicted_class = CLASS_NAMES[np.argmax(prediction)]
+    confidence = np.max(prediction) * 100
+    return predicted_class, confidence
+
+# API Endpoint
+@app.post("/predict/brain-tumor")
+async def predict_image(file: UploadFile = File(...)):
     try:
-        image = Image.open(io.BytesIO(await file.read())).convert("RGB")
-        image = ImageOps.fit(image, (240, 240), Image.Resampling.LANCZOS)
-        img_array = np.asarray(image) / 255.0
-        img_array = img_array[np.newaxis, ...]
-
-        prediction = model.predict(img_array)
-        predicted_class = class_names[np.argmax(prediction)]
-        confidence = float(np.max(prediction)) * 100
-
-        processing_time = time.time() - start_time
-        logger.info(f"Processing Time: {processing_time:.2f} seconds")
-
-        return JSONResponse(content={
-            "predicted_class": predicted_class,
-            "confidence": confidence
-        })
-
+        image = Image.open(io.BytesIO(await file.read()))
+        predicted_class, confidence = predict(image)
+        return JSONResponse({"predicted_class": predicted_class, "confidence": confidence})
     except Exception as e:
-        logger.error(f"Prediction error: {e}")
-        return JSONResponse(content={"error": str(e)}, status_code=500)
+        return JSONResponse({"error": str(e)}, status_code=500)
