@@ -68,16 +68,26 @@ async def check_health():
 
 # Load model weights
 weights_path = 'models/model.weights.h5'
+model = None  # Define model globally
+
 if os.path.exists(weights_path):
-    model = rebuild_model()
-    model.load_weights(weights_path)
+    model = rebuild_model()  # Build model architecture
+    model.load_weights(weights_path)  # Load weights
     logger.info("Model weights loaded successfully.")
 else:
     logger.error("Model weights file not found!")
+    raise RuntimeError("Model weights file is missing. Please upload the correct model file.")
 
 @app.post("/predict/brain-tumor")
 async def predict_brain_tumor(file: UploadFile = File(...)):
+    global model  # Ensure model is recognized globally
+
+    if model is None:
+        logger.error("Model is not loaded!")
+        return JSONResponse(content={"error": "Model is not loaded. Please check the server logs."}, status_code=500)
+
     start_time = time.time()
+    
     try:
         image = Image.open(io.BytesIO(await file.read())).convert("RGB")
         image = ImageOps.fit(image, (240, 240), Image.Resampling.LANCZOS)
@@ -87,7 +97,7 @@ async def predict_brain_tumor(file: UploadFile = File(...)):
         prediction = model.predict(img_array)
         predicted_class = class_names[np.argmax(prediction)]
         confidence = float(np.max(prediction)) * 100
-        
+
         processing_time = time.time() - start_time
         logger.info(f"Processing Time: {processing_time:.2f} seconds")
 
