@@ -8,7 +8,8 @@ st.set_page_config(
     initial_sidebar_state="auto"
 )
 
-FASTAPI_URL = "http://34.69.54.132:8000" # for testing purposes
+#FASTAPI_URL = "http://34.69.54.132:8000"
+FASTAPI_URL = "http://brain-tumor-detection:8000"
 
 st.title("Brain Tumor Detection")
 
@@ -21,7 +22,8 @@ if file:
 
     st.subheader("Brain Tumor Detection Results")
     with st.spinner("Processing..."):
-        response = requests.post(f"{FASTAPI_URL}/predict/brain-tumor", files={"file": file.getvalue()})
+        files = {"file": ("image.jpg", file.getvalue(), "image/jpeg")}
+        response = requests.post(f"{FASTAPI_URL}/predict/brain-tumor", files=files)
     
     if response.status_code == 200:
         result = response.json()
