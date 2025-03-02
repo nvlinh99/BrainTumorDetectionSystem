@@ -67,8 +67,8 @@ async def check_health():
     return {'status': 'healthy'}
 
 # Load model weights
-weights_path = '/models/model.weights.h5'
-model = None  # Define model globally
+weights_path = '/app/models/model.weights.h5'
+model = None 
 
 if os.path.exists(weights_path):
     model = rebuild_model()  # Build model architecture
