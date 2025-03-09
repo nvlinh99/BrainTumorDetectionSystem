@@ -42,7 +42,7 @@ def rebuild_model():
 # Hàm load model (kiến trúc + trọng số)
 @st.cache_data
 def load_model_cached():
-    weights_path = 'model/model.weights.h5'  # Đường dẫn tới file trọng số
+    weights_path = '../models/model.weights.h5'  # Đường dẫn tới file trọng số
     try:
         if not os.path.exists(weights_path):
             st.error(f"Model weights file not found: {weights_path}. Please ensure the file exists.")
@@ -50,7 +50,7 @@ def load_model_cached():
         # Khởi tạo mô hình
         model = rebuild_model()
         # Load trọng số vào mô hình
-        model.load_weights(weights_path,  by_name=True,  skip_mismatch=True)
+        model.load_weights(weights_path, skip_mismatch=True)
         return model
     except Exception as e:
         st.error(f"Error loading model: {e}")
@@ -85,7 +85,7 @@ st.write("""
 """)
 
 # Upload file ảnh
-file = st.file_uploader("", type=["jpg", "png", "jpeg"])
+file = st.file_uploader("Upload an MRI scan image", type=["jpg", "png", "jpeg"], label_visibility='collapsed')
 
 if file is None:
     st.text("Please upload an image file")
