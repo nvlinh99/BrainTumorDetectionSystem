@@ -42,7 +42,7 @@ def rebuild_model():
 # Hàm load model (kiến trúc + trọng số)
 @st.cache_data
 def load_model_cached():
-    weights_path = '/app/models/model.weights.h5'  # Đường dẫn tới file trọng số
+    weights_path = os.path.join(os.path.dirname(__file__), "model.weights.h5")
     try:
         if not os.path.exists(weights_path):
             st.error(f"Model weights file not found: {weights_path}. Please ensure the file exists.")
