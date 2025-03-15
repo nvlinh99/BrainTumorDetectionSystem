@@ -31,7 +31,7 @@ app.add_middleware(
 )
 
 # Get configuration from environment variables
-OTLP_GRPC_ENDPOINT = os.environ.get("OTLP_GRPC_ENDPOINT", "jaeger-jaeger.tracing.svc.cluster.local:4317")
+OTLP_GRPC_ENDPOINT = os.environ.get("OTLP_GRPC_ENDPOINT", "http://jaeger-query.tracing.svc.cluster.local:4317")
 
 def setting_jaeger(app: FastAPI, log_correlation: bool = True) -> None:
     try:
