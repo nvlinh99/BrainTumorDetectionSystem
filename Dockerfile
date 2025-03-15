@@ -21,6 +21,8 @@ COPY ./api/requirements.txt /app/requirements.txt
 # Install Python dependencies
 RUN pip install --no-cache-dir -r /app/requirements.txt
 
+RUN pip install --no-cache-dir streamlit tensorflow google-cloud-storage
+
 # Copy FastAPI and Streamlit app files
 COPY ./api /app/api
 COPY ./models /app/models
