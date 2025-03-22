@@ -4,7 +4,7 @@
   vars:
     project_id: tribal-bonsai-453807-i6
     zone: asia-southeast1-a
-    credentials_file: ../credentials/tribal-bonsai-453807-i6-cc1e5bc2ee63.json
+    credentials_file: ../credentials/tribal-bonsai-453807-i6-2f75e600b468.json
     instance_name: jenkins-instance
     machine_type: n1-standard-2
     disk_name: disk-instance
