@@ -16,7 +16,6 @@ from PIL import Image, ImageOps
 import numpy as np
 import io
 import os
-import time
 
 # Initialize FastAPI app
 app = FastAPI()
@@ -87,23 +86,26 @@ def load_model(weights_path="/app/models/model.weights.h5"):
 model = load_model()
 
 # Prediction function
-def predict(image):
+def predict(image: Image.Image):
     size = (240, 240)
     image = ImageOps.fit(image, size, Image.Resampling.LANCZOS)
     img = np.asarray(image) / 255.0
     img_reshape = img[np.newaxis, ...]
-    
+
     prediction = model.predict(img_reshape)
     predicted_class = CLASS_NAMES[np.argmax(prediction)]
-    confidence = np.max(prediction) * 100
+    confidence = float(np.max(prediction) * 100)  # 🔥 FIX: Convert float32 → float
     return predicted_class, confidence
 
 # API Endpoint
 @app.post("/predict/brain-tumor")
 async def predict_image(file: UploadFile = File(...)):
     try:
-        image = Image.open(io.BytesIO(await file.read()))
+        logger.info(f"Received file: {file.filename}")
+        image = Image.open(io.BytesIO(await file.read())).convert("RGB")
         predicted_class, confidence = predict(image)
+        logger.info(f"Prediction: {predicted_class} ({confidence:.2f}%)")
         return JSONResponse({"predicted_class": predicted_class, "confidence": confidence})
     except Exception as e:
+        logger.error(f"Prediction failed: {str(e)}")
         return JSONResponse({"error": str(e)}, status_code=500)
