@@ -60,7 +60,7 @@ setting_jaeger(app)
 
 @app.get('/')
 async def index():
-    return {'message': 'Welcome to Brain Tumor Detection API!'}
+    return {'message': 'Welcome to our Brain Tumor Detection API!'}
 
 @app.get('/health')
 async def check_health():
