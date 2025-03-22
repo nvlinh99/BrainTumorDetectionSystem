@@ -91,7 +91,7 @@ if file is None:
     st.text("Please upload an image file")
 else:
     image = Image.open(file)  # Mở ảnh
-    st.image(image, use_column_width=True)  # Hiển thị ảnh
+    st.image(image, use_container_width=True)  # Hiển thị ảnh
 
     # Dự đoán từ ảnh
     predictions = import_and_predict(image, model)

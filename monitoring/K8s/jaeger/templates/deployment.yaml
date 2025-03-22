@@ -16,9 +16,11 @@ spec:
       - name: jaeger
         image: jaegertracing/all-in-one:latest
         ports:
+        # Define the UDP port for agent-compact
         - containerPort: 6831
           name: agent-compact
           protocol: UDP
+        # Define the TCP ports for other Jaeger services
         - containerPort: 16686
           name: query
           protocol: TCP
@@ -40,4 +42,4 @@ spec:
             memory: 512Mi
           requests:
             cpu: 256m
-            memory: 128Mi 
+            memory: 128Mi
