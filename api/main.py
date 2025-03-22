@@ -64,7 +64,7 @@ async def index():
 
 @app.get('/health')
 async def check_health():
-    return {'status': 'healthy'}
+    return {'status': 'Service healthy'}
 
 CLASS_NAMES = ['Glioma Tumor', 'Meningioma Tumor', 'No Tumor', 'Pituitary Tumor']
 
