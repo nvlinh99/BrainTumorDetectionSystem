@@ -1,5 +1,5 @@
 # Authentication
-credentials = "../credentials/tribal-bonsai-453807-i6-2f75e600b468.json"
+credentials = "../credentials/tribal-bonsai-453807-i6-e6ebbeb81f47.json"
 # Project Settings
 project_id = "tribal-bonsai-453807-i6"
 region     = "asia-southeast1"   # Updated to Singapore region
