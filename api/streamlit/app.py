@@ -16,7 +16,7 @@ st.set_page_config(
     initial_sidebar_state="auto"
 )
 
-# Ẩn menu và footer Streamlit
+# Hide Streamlit menu and footer
 hide_streamlit_style = """
     <style>
     #MainMenu {visibility: hidden;}
@@ -25,86 +25,83 @@ hide_streamlit_style = """
 """
 st.markdown(hide_streamlit_style, unsafe_allow_html=True)
 
-# Danh sách các lớp
+# Class names
 class_names = ['Glioma Tumor', 'Meningioma Tumor', 'No Tumor', 'Pituitary Tumor']
 
-# Hàm khởi tạo lại kiến trúc mô hình
+# Rebuild model architecture
 def rebuild_model():
-    # Load EfficientNetB1 base model
     base_model = EfficientNetB1(weights=None, include_top=False, input_shape=(240, 240, 3))
     x = base_model.output
     x = GlobalAveragePooling2D()(x)
     x = Dropout(0.5)(x)
-    output = Dense(4, activation='softmax')(x)  # 4 lớp đầu ra
+    output = Dense(4, activation='softmax')(x)
     model = Model(inputs=base_model.input, outputs=output)
     return model
 
-# Hàm load model (kiến trúc + trọng số)
+# Load model from cache
 @st.cache_data
 def load_model_cached():
     weights_path = os.path.join(os.path.dirname(__file__), "model.weights.h5")
+    if not os.path.exists(weights_path):
+        st.error(f"❌ Model weights not found at: {weights_path}")
+        return None
     try:
-        if not os.path.exists(weights_path):
-            st.error(f"Model weights file not found: {weights_path}. Please ensure the file exists.")
-            return None
-        # Khởi tạo mô hình
         model = rebuild_model()
-        # Load trọng số vào mô hình
-        model.load_weights(weights_path,  by_name=True,  skip_mismatch=True)
+        model.load_weights(weights_path)  # Removed skip_mismatch
         return model
     except Exception as e:
-        st.error(f"Error loading model: {e}")
+        st.error(f"❌ Failed to load model weights: {e}")
         return None
 
-# Load model từ cache
-model = load_model_cached()
-if model is None:
-    st.error("The model could not be loaded. Please check the file path or model architecture.")
-    st.stop()
-
-# Hàm dự đoán
+# Prediction function
 def import_and_predict(image_data, model):
     size = (240, 240)
     image = image_data.convert("RGB")
     image = ImageOps.fit(image, size, Image.Resampling.LANCZOS)
-    img = np.asarray(image)
-    img = img / 255.0
+    img = np.asarray(image) / 255.0
     img_reshape = img[np.newaxis, ...]
-    prediction = model.predict(img_reshape)  # Make prediction
+    
+    st.write("🔍 Debug: Input shape", img_reshape.shape)
+    st.write("🔍 Debug: Sample pixels", img_reshape[0, :3, :3, 0])  # Check pixel values
+    
+    prediction = model.predict(img_reshape)
+    st.write("🔍 Debug: Raw prediction output", prediction)  # Raw probabilities
     return prediction
 
-# Sidebar giao diện
-with st.sidebar:
-    st.title("Brain Tumor Detection")
-    st.subheader("Accurate detection of brain tumor types using MRI scans.")
+# Load model
+model = load_model_cached()
+if model is None:
+    st.stop()
 
-# Nội dung chính
+# Sidebar
+with st.sidebar:
+    st.title("🧠 Brain Tumor Detection")
+    st.subheader("Detect brain tumor types from MRI scans.")
+
+# Main content
 st.write("""
-    # Brain Tumor Detection with MRI Scans
-    Upload an MRI scan to detect if a tumor is present and its type.
+    # 🧠 Brain Tumor Detection with MRI
+    Upload an MRI scan below to classify tumor type (if any).
 """)
 
-# Upload file ảnh
-file = st.file_uploader("", type=["jpg", "png", "jpeg"])
+file = st.file_uploader("Upload an MRI image", type=["jpg", "jpeg", "png"], label_visibility='collapsed')
 
 if file is None:
-    st.text("Please upload an image file")
+    st.info("📁 Please upload an image to begin.")
 else:
-    image = Image.open(file)  # Mở ảnh
-    st.image(image, use_column_width=True)  # Hiển thị ảnh
+    image = Image.open(file)
+    st.image(image, caption="Uploaded Image", use_container_width=True)
 
-    # Dự đoán từ ảnh
     predictions = import_and_predict(image, model)
-    predicted_class = class_names[np.argmax(predictions)]  # Lấy lớp dự đoán
-    confidence = np.max(predictions) * 100  # Xác suất cao nhất
+    predicted_class = class_names[np.argmax(predictions)]
+    confidence = np.max(predictions) * 100
 
-    # Hiển thị kết quả
-    st.sidebar.info(f"Prediction: {predicted_class}")
-    st.sidebar.success(f"Confidence: {confidence:.2f}%")
+    st.sidebar.info(f"🧪 Prediction: {predicted_class}")
+    st.sidebar.success(f"📊 Confidence: {confidence:.2f}%")
 
     if predicted_class == 'No Tumor':
         st.balloons()
-        st.markdown("### Great news! No tumor detected.")
+        st.markdown("### ✅ Great news! No tumor detected.")
     else:
-        st.markdown(f"### Detected Tumor Type: {predicted_class}")
-        st.warning("Please consult with a medical professional for further evaluation.")
+        st.markdown(f"### ⚠️ Detected Tumor Type: **{predicted_class}**")
+        st.warning("Please consult a medical professional for further diagnosis.")
