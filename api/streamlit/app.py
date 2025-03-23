@@ -41,7 +41,7 @@ def rebuild_model():
 # Load model from cache
 @st.cache_data
 def load_model_cached():
-    weights_path = "model.weights.h5"
+    weights_path = os.path.join(os.path.dirname(__file__), "model.weights.h5")
     if not os.path.exists(weights_path):
         st.error(f"❌ Model weights not found at: {weights_path}")
         return None
