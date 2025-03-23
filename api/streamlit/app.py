@@ -50,7 +50,7 @@ def load_model_cached():
         # Khởi tạo mô hình
         model = rebuild_model()
         # Load trọng số vào mô hình
-        model.load_weights(weights_path, skip_mismatch=True)
+        model.load_weights(weights_path,  by_name=True,  skip_mismatch=True)
         return model
     except Exception as e:
         st.error(f"Error loading model: {e}")
@@ -85,13 +85,13 @@ st.write("""
 """)
 
 # Upload file ảnh
-file = st.file_uploader("Upload an MRI scan image", type=["jpg", "png", "jpeg"], label_visibility='collapsed')
+file = st.file_uploader("", type=["jpg", "png", "jpeg"])
 
 if file is None:
     st.text("Please upload an image file")
 else:
     image = Image.open(file)  # Mở ảnh
-    st.image(image, use_container_width=True)  # Hiển thị ảnh
+    st.image(image, use_column_width=True)  # Hiển thị ảnh
 
     # Dự đoán từ ảnh
     predictions = import_and_predict(image, model)
