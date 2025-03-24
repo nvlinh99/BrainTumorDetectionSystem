@@ -61,11 +61,11 @@ def import_and_predict(image_data, model):
     img = np.asarray(image) / 255.0
     img_reshape = img[np.newaxis, ...]
     
-    st.write("🔍 Debug: Input shape", img_reshape.shape)
-    st.write("🔍 Debug: Sample pixels", img_reshape[0, :3, :3, 0])  # Check pixel values
+    # st.write("🔍 Debug: Input shape", img_reshape.shape)
+    # st.write("🔍 Debug: Sample pixels", img_reshape[0, :3, :3, 0])  # Check pixel values
     
     prediction = model.predict(img_reshape)
-    st.write("🔍 Debug: Raw prediction output", prediction)  # Raw probabilities
+    # st.write("🔍 Debug: Raw prediction output", prediction)  # Raw probabilities
     return prediction
 
 # Load model

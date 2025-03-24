@@ -2,7 +2,8 @@ import tensorflow as tf
 import numpy as np
 
 # Path to your weights file
-weights_path = "model.weights.h5"
+# weights_path = "xception_model.weights.h5"
+weights_path = "cnn_model.h5"
 
 # Rebuild the model architecture
 def rebuild_model():
